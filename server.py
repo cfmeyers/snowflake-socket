@@ -36,7 +36,7 @@ def refresh_sf_connection(snowflake_conn, time_of_last_connection, connection_he
     if minutes_since_last_connection > REFRESH_INTERVAL_IN_MINUTES:
         print('refreshing snowflake connection')
         snowflake_conn.close()
-        return get_sf_connection(database='RTR_QA'), now
+        return get_sf_connection(connection_header), now
     else:
         print('no need to refresh snowflake connection')
         return snowflake_conn, now
