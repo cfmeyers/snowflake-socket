@@ -1,3 +1,4 @@
+import argparse
 import socket
 import sys
 import os
@@ -16,7 +17,19 @@ BUFFER_SIZE = 4096
 REFRESH_INTERVAL_IN_MINUTES = 20
 
 
-def refresh_sf_connection(snowflake_conn, time_of_last_connection):
+def parse_args():
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument(
+        '-c',
+        '--connection_header',
+        help="Snowflake connection header for .snowsql/config file",
+        type=str,
+        required=True,
+    )
+    return parser.parse_args()
+
+
+def refresh_sf_connection(snowflake_conn, time_of_last_connection, connection_header):
     now = datetime.now()
     minutes_since_last_connection = (now - time_of_last_connection).seconds / 60
     print(f'{minutes_since_last_connection} minutes since last snowflake conn refresh')
@@ -29,7 +42,7 @@ def refresh_sf_connection(snowflake_conn, time_of_last_connection):
         return snowflake_conn, now
 
 
-def main():
+def main(connection_header):
     try:
         # Make sure the socket does not already exist
         os.unlink(SERVER_ADDRESS)
@@ -47,7 +60,7 @@ def main():
     # Listen for incoming connections
     sock.listen(1)
 
-    snowflake_conn = get_sf_connection(database='RTR_QA')
+    snowflake_conn = get_sf_connection(connection_header)
     time_of_last_connection = datetime.now()
 
     while True:
@@ -70,7 +83,7 @@ def main():
                 if data:
                     print('running query in Snowflake')
                     snowflake_conn, time_of_last_connection = refresh_sf_connection(
-                        snowflake_conn, time_of_last_connection
+                        snowflake_conn, time_of_last_connection, connection_header
                     )
                     snowflake_cursor = get_dict_cursor_from_connection(snowflake_conn)
                     results = list(
@@ -100,4 +113,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    main(args.connection_header)
