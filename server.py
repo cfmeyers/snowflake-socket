@@ -86,13 +86,13 @@ def main(connection_header):
                         snowflake_conn, time_of_last_connection, connection_header
                     )
                     snowflake_cursor = get_dict_cursor_from_connection(snowflake_conn)
-                    results = list(
-                        get_results_from_query(
-                            data.decode(encoding='utf-8'), snowflake_cursor
-                        )
-                    )
-                    snowflake_cursor.close()
                     try:
+                        results = list(
+                            get_results_from_query(
+                                data.decode(encoding='utf-8'), snowflake_cursor
+                            )
+                        )
+                        snowflake_cursor.close()
                         row_collection = guess_row_collection(results)
                         for result in results:
                             row_collection.append(result)
