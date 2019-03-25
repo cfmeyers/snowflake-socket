@@ -12,7 +12,7 @@ from snowflake_utils import (
 )
 from row_printer import guess_row_collection
 
-SERVER_ADDRESS = '/tmp/snowflake-socket'
+SERVER_ADDRESS = '/tmp/snowflake-proxy.socket'
 BUFFER_SIZE = 4096
 REFRESH_INTERVAL_IN_MINUTES = 20
 
