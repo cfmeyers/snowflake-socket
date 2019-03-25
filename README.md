@@ -10,7 +10,7 @@ Give vim (or your text editor of choice) a Snowflake REPL-like capability.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python server.py --connection_header connections.my_connection_header
+python snowflake_proxy_server.py --connection_header connections.my_connection_header
 ```
 where `connections.my_connection_header` is in your `~./snowsql/config` file.
 
