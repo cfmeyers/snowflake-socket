@@ -84,43 +84,42 @@ def main(connection_header):
             print('connection from', client_address)
 
             # Receive the data in small chunks and retransmit it
+            data = b''
             while True:
-                data = b''
-                while True:
-                    part = connection.recv(BUFFER_SIZE)
-                    data += part
-                    if len(part) < BUFFER_SIZE:
-                        break
-
-                print('received {!r}'.format(data))
-                if data:
-                    print('running query in Snowflake')
-                    snowflake_conn, time_of_last_connection = refresh_sf_connection(
-                        snowflake_conn, time_of_last_connection, connection_header
-                    )
-                    snowflake_cursor = get_dict_cursor_from_connection(snowflake_conn)
-                    query = data.decode(encoding='utf-8')
-                    try:
-                        results_gen = get_results_from_query(query, snowflake_cursor)
-                        results = [r for r in results_gen][: RESULTS_LIMIT + 1]
-                        if len(results) == RESULTS_LIMIT + 1:
-                            results_were_truncated = True
-                            results = results[:RESULTS_LIMIT]
-                        else:
-                            results_were_truncated = False
-                        snowflake_cursor.close()
-                        row_collection = guess_row_collection(results)
-                        for result in results:
-                            row_collection.append(result)
-                        msg = format_msg(row_collection, results_were_truncated)
-                    except Exception as e:
-                        print(e)
-                        msg = str(e).encode(encoding='utf-8')
-                    print(msg)
-                    connection.sendall(msg)
-                else:
-                    print('no data from', client_address)
+                part = connection.recv(BUFFER_SIZE)
+                data += part
+                if len(part) < BUFFER_SIZE:
                     break
+
+            print('received {!r}'.format(data))
+            if data:
+                print('running query in Snowflake')
+                snowflake_conn, time_of_last_connection = refresh_sf_connection(
+                    snowflake_conn, time_of_last_connection, connection_header
+                )
+                snowflake_cursor = get_dict_cursor_from_connection(snowflake_conn)
+                query = data.decode(encoding='utf-8')
+                try:
+                    results_gen = get_results_from_query(query, snowflake_cursor)
+                    results = [r for r in results_gen][: RESULTS_LIMIT + 1]
+                    if len(results) == RESULTS_LIMIT + 1:
+                        results_were_truncated = True
+                        results = results[:RESULTS_LIMIT]
+                    else:
+                        results_were_truncated = False
+                    snowflake_cursor.close()
+                    row_collection = guess_row_collection(results)
+                    for result in results:
+                        row_collection.append(result)
+                    msg = format_msg(row_collection, results_were_truncated)
+                except Exception as e:
+                    print(e)
+                    msg = str(e).encode(encoding='utf-8')
+                print(msg)
+                connection.sendall(msg)
+            else:
+                print('no data from', client_address)
+                break
 
         finally:
             # Clean up the connection
