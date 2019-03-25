@@ -15,6 +15,7 @@ from row_printer import guess_row_collection
 SERVER_ADDRESS = '/tmp/snowflake-proxy.socket'
 BUFFER_SIZE = 4096
 REFRESH_INTERVAL_IN_MINUTES = 20
+RESULTS_LIMIT = 500
 
 
 def parse_args():
@@ -42,6 +43,16 @@ def refresh_sf_connection(snowflake_conn, time_of_last_connection, connection_he
     else:
         print('no need to refresh snowflake connection')
         return snowflake_conn, now
+
+
+def format_msg(row_collection, results_were_truncated):
+    if results_were_truncated:
+        coda = f'\n*Results truncated, only displaying top {RESULTS_LIMIT}*\n'
+    else:
+        coda = ''
+    msg = str(row_collection)
+    msg += coda
+    return msg.encode(encoding='utf-8')
 
 
 def main(connection_header):
@@ -90,12 +101,18 @@ def main(connection_header):
                     snowflake_cursor = get_dict_cursor_from_connection(snowflake_conn)
                     query = data.decode(encoding='utf-8')
                     try:
-                        results = list(get_results_from_query(query, snowflake_cursor))
+                        results_gen = get_results_from_query(query, snowflake_cursor)
+                        results = [r for r in results_gen][: RESULTS_LIMIT + 1]
+                        if len(results) == RESULTS_LIMIT + 1:
+                            results_were_truncated = True
+                            results = results[:RESULTS_LIMIT]
+                        else:
+                            results_were_truncated = False
                         snowflake_cursor.close()
                         row_collection = guess_row_collection(results)
                         for result in results:
                             row_collection.append(result)
-                        msg = str(row_collection).encode(encoding='utf-8')
+                        msg = format_msg(row_collection, results_were_truncated)
                     except Exception as e:
                         print(e)
                         msg = str(e).encode(encoding='utf-8')
