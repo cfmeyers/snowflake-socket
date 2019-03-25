@@ -1,7 +1,7 @@
 import socket
 import sys
 
-from server import BUFFER_SIZE, SERVER_ADDRESS
+from snowflake_proxy_server import BUFFER_SIZE, SERVER_ADDRESS
 
 
 def query_server(query_message):
