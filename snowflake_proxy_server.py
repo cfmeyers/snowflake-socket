@@ -10,7 +10,8 @@ from snowflake_utils import (
     get_sf_connection,
     get_dict_cursor_from_connection,
 )
-from row_printer import guess_row_collection
+
+from pretty_table_printer import guess_row_collection
 
 SERVER_ADDRESS = '/tmp/snowflake-proxy.socket'
 BUFFER_SIZE = 4096

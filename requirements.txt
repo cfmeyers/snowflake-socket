@@ -1,2 +1,2 @@
--e git+git@github.com:cfmeyers/row-printer.git#egg=row_printer
+pretty-table-printer
 -e git+git@github.com:cfmeyers/snowflake-utils.git#egg=snowflake_utils
